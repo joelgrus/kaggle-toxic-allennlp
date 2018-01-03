@@ -1,9 +1,10 @@
 """
-reader
+Reads the toxic data dataset from a csv, where the data looks like
 
+comment_id,comment_text,toxic,severe_toxic,obscene,threat,insult,identity_hate
 
-(kaggle) OS-XImage:toxic joelg$ tail -n +2 data/train.csv | head -n 300000 > data/train
-(kaggle) OS-XImage:toxic joelg$ tail -n +2 data/train.csv | tail -n 37775  > data/validate
+where the last 6 label columns are all 0 or 1
+(and where a comment can have multiple labels)
 """
 from typing import List, Dict
 import csv
@@ -65,6 +66,9 @@ class ToxicReader(DatasetReader):
 
         fields = {'text': text_field}
 
+        # Normally we wouldn't do this, but we need the test instances to have
+        # the same "shape" as the train instances so that we can combine them
+        # all into a single dataset.
         if not labels:
             labels = [0, 0, 0, 0, 0, 0]
 
