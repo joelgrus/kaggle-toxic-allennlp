@@ -4,7 +4,7 @@ from allennlp.common.util import JsonDict, sanitize
 from allennlp.data import DatasetReader, Instance
 from allennlp.data.tokenizers import WordTokenizer
 from allennlp.models import Model
-from allennlp.service.predictors.predictor import Predictor
+from allennlp.predictors import Predictor
 
 
 @Predictor.register('toxic')

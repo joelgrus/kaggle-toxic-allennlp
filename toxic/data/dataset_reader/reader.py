@@ -6,14 +6,14 @@ comment_id,comment_text,toxic,severe_toxic,obscene,threat,insult,identity_hate
 where the last 6 label columns are all 0 or 1
 (and where a comment can have multiple labels)
 """
-from typing import List, Dict
+from typing import List, Dict, Iterable
 import csv
 import sys
 
 import tqdm
 from allennlp.common import Params
 from allennlp.common.checks import ConfigurationError
-from allennlp.data import DatasetReader, Dataset, Instance
+from allennlp.data import DatasetReader, Instance
 from allennlp.data.fields import TextField, LabelField, ListField
 from allennlp.data.tokenizers import Tokenizer, WordTokenizer
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
@@ -30,6 +30,7 @@ class ToxicReader(DatasetReader):
                  max_length: int = None,
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None) -> None:
+        super().__init__(lazy=False)
         self.max_length = max_length
         self._tokenizer = tokenizer or WordTokenizer()
         self._token_indexers = token_indexers or {"tokens": SingleIdTokenIndexer()}
@@ -42,7 +43,7 @@ class ToxicReader(DatasetReader):
         params.assert_empty(cls.__name__)
         return cls(max_length=max_length, tokenizer=tokenizer, token_indexers=token_indexers)
 
-    def read(self, file_path: str) -> Dataset:
+    def _read(self, file_path: str) -> Iterable[Instance]:
         instances = []
         with open(file_path, "r") as data_file:
             reader = csv.reader(data_file)
@@ -52,7 +53,7 @@ class ToxicReader(DatasetReader):
         if not instances:
             raise ConfigurationError("No instances read!")
 
-        return Dataset(instances)
+        return instances
 
     # pylint: disable=arguments-differ
     def text_to_instance(self,

@@ -64,3 +64,24 @@ I found a couple:
  which makes it hard to generate the submission containing the test data and predictions (which also needs to be in CSV format).
  I made a PR to fix this, but in the meantime I just wrote my own `predict.py` that deals natively with CSVs.
 
+# Running it Yourself
+
+I just (July 2018) updated it to work with the latest released allennlp (0.5.1).
+
+To run the code, create a new virtual environment and
+
+```
+pip install allennlp==0.5.1
+```
+
+Then you can train the model using the command
+
+```
+allennlp train --include-package toxic baseline.json -s /tmp/your/serialization/directory
+```
+
+(The `include-package` flag is necessary for the allennlp code to know about the
+ custom classes defined here.)
+
+You might need to do `export PYTHONPATH=.`, I have been doing Python for years
+and still don't really understand when that's necessary.

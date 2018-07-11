@@ -27,10 +27,10 @@ class MultiLabelF1Measure(Metric):
         gold_labels : ``torch.Tensor``, required.
             A tensor of 0 and 1 predictions of shape (batch_size, ..., num_labels).
         """
-        self._true_positives += (predictions * gold_labels).sum()
-        self._false_positives += (predictions * (1 - gold_labels)).sum()
-        self._true_negatives += ((1 - predictions) * (1 - gold_labels)).sum()
-        self._false_negatives += ((1 - predictions) * gold_labels).sum()
+        self._true_positives += (predictions * gold_labels).sum().item()
+        self._false_positives += (predictions * (1 - gold_labels)).sum().item()
+        self._true_negatives += ((1 - predictions) * (1 - gold_labels)).sum().item()
+        self._false_negatives += ((1 - predictions) * gold_labels).sum().item()
 
     def get_metric(self, reset: bool = False):
         """
@@ -41,9 +41,17 @@ class MultiLabelF1Measure(Metric):
         recall : float
         f1-measure : float
         """
-        precision = float(self._true_positives) / float(self._true_positives + self._false_positives + 1e-13)
-        recall = float(self._true_positives) / float(self._true_positives + self._false_negatives + 1e-13)
-        f1_measure = 2. * ((precision * recall) / (precision + recall + 1e-13))
+        predicted_positives = self._true_positives + self._false_positives
+        actual_positives = self._true_positives + self._false_negatives
+
+        precision = self._true_positives / predicted_positives if predicted_positives > 0 else 0
+        recall = self._true_positives / actual_positives if actual_positives > 0 else 0
+
+        if precision + recall > 0:
+            f1_measure = 2 * precision * recall / (precision + recall)
+        else:
+            f1_measure = 0
+
         if reset:
             self.reset()
         return precision, recall, f1_measure
