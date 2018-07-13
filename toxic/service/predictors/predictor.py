@@ -30,7 +30,7 @@ class ToxicPredictor(Predictor):
             for input in inputs
         ]
 
-        outputs = self._model.forward_on_instances(instances, cuda_device)
+        outputs = self._model.forward_on_instances(instances)
 
         for input, output in zip(inputs, outputs):
             output['id'] = input['id']

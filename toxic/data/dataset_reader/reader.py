@@ -29,9 +29,11 @@ class ToxicReader(DatasetReader):
     def __init__(self,
                  max_length: int = None,
                  tokenizer: Tokenizer = None,
-                 token_indexers: Dict[str, TokenIndexer] = None) -> None:
+                 token_indexers: Dict[str, TokenIndexer] = None,
+                 fill_in_empty_labels: bool = False) -> None:
         super().__init__(lazy=False)
         self.max_length = max_length
+        self.fill_in_empty_labels = fill_in_empty_labels
         self._tokenizer = tokenizer or WordTokenizer()
         self._token_indexers = token_indexers or {"tokens": SingleIdTokenIndexer()}
 
@@ -40,8 +42,11 @@ class ToxicReader(DatasetReader):
         tokenizer = Tokenizer.from_params(params.pop('tokenizer', {}))
         token_indexers = TokenIndexer.dict_from_params(params.pop('token_indexers', {}))
         max_length = params.pop('max_length', None)
+        fill_in_empty_labels = params.pop_bool('fill_in_empty_labels', False)
         params.assert_empty(cls.__name__)
-        return cls(max_length=max_length, tokenizer=tokenizer, token_indexers=token_indexers)
+        return cls(max_length=max_length,
+                   fill_in_empty_labels=fill_in_empty_labels,
+                   tokenizer=tokenizer, token_indexers=token_indexers)
 
     def _read(self, file_path: str) -> Iterable[Instance]:
         instances = []
@@ -70,19 +75,19 @@ class ToxicReader(DatasetReader):
         # Normally we wouldn't do this, but we need the test instances to have
         # the same "shape" as the train instances so that we can combine them
         # all into a single dataset.
-        if not labels:
-            labels = [0, 0, 0, 0, 0, 0]
+        if labels or self.fill_in_empty_labels:
+            labels = labels or [0, 0, 0, 0, 0, 0]
 
-        toxic, severe_toxic, obscene, threat, insult, identity_hate = labels
+            toxic, severe_toxic, obscene, threat, insult, identity_hate = labels
 
-        # Because the labels are already 0 or 1, skip_indexing.
-        fields['labels'] = ListField([
-            LabelField(int(toxic),         skip_indexing=True),
-            LabelField(int(severe_toxic),  skip_indexing=True),
-            LabelField(int(obscene),       skip_indexing=True),
-            LabelField(int(threat),        skip_indexing=True),
-            LabelField(int(insult),        skip_indexing=True),
-            LabelField(int(identity_hate), skip_indexing=True)
-        ])
+            # Because the labels are already 0 or 1, skip_indexing.
+            fields['labels'] = ListField([
+                LabelField(int(toxic),         skip_indexing=True),
+                LabelField(int(severe_toxic),  skip_indexing=True),
+                LabelField(int(obscene),       skip_indexing=True),
+                LabelField(int(threat),        skip_indexing=True),
+                LabelField(int(insult),        skip_indexing=True),
+                LabelField(int(identity_hate), skip_indexing=True)
+            ])
 
         return Instance(fields)

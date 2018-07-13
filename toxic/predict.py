@@ -16,13 +16,13 @@ from toxic.data.dataset_reader.reader import ToxicReader
 from toxic.models.model import ToxicModel
 from toxic.service.predictors.predictor import ToxicPredictor
 
-ARCHIVE_FILE = 'serialization/baseline/model.tar.gz'
+ARCHIVE_FILE = '/tmp/test/model.tar.gz'
 CUDA_DEVICE = -1
 PREDICTOR_NAME = 'toxic'
-INPUT_FILE = 'data/test'
+INPUT_FILE = 'data/test_small'
 OUTPUT_FILE = 'serialization/baseline/predictions.csv'
 PRINT_TO_CONSOLE = False
-BATCH_SIZE = 128
+BATCH_SIZE = 1
 
 if __name__ == "__main__":
     archive = load_archive(ARCHIVE_FILE, CUDA_DEVICE)
@@ -35,12 +35,12 @@ if __name__ == "__main__":
 
         def _run_predictor(batch_data):
             if len(batch_data) == 1:
-                result = predictor.predict_json(batch_data[0], CUDA_DEVICE)
+                result = predictor.predict_json(batch_data[0])
                 # Batch results return a list of json objects, so in
                 # order to iterate over the result below we wrap this in a list.
                 results = [result]
             else:
-                results = predictor.predict_batch_json(batch_data, CUDA_DEVICE)
+                results = predictor.predict_batch_json(batch_data)
 
             for model_input, output in zip(batch_data, results):
 
